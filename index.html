@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quest Log</title>
+  <style>
+    /* Add styles for the old scroll design */
+    body {
+      background-color: #e5d0b8; /* Parchment color */
+      font-family: 'Book Antiqua', Palatino, 'Palatino Linotype', 'Palatino LT STD', Georgia, serif;
+      margin: 20px;
+    }
+    h1 {
+      text-align: center;
+      font-size: 36px;
+      margin-bottom: 20px;
+    }
+    #questForm, #questList {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: #f5ecd1; /* Light yellow background */
+      border: 2px solid #c3a775; /* Brown border */
+      padding: 20px;
+      border-radius: 10px;
+    }
+    label {
+      display: block;
+      margin-bottom: 8px;
+    }
+    input[type="text"],
+    textarea,
+    input[type="checkbox"] {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 16px;
+      box-sizing: border-box;
+    }
+    textarea {
+      resize: vertical;
+    }
+    button {
+      background-color: #8c6643; /* Dark brown button color */
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #63402b; /* Lighter brown on hover */
+    }
+    #questList {
+      list-style-type: none;
+      padding: 0;
+    }
+    .quest {
+      margin-bottom: 20px;
+      padding: 10px;
+      background-color: #f5ecd1; /* Light yellow background */
+      border: 2px solid #c3a775; /* Brown border */
+      border-radius: 10px;
+    }
+    .quest p {
+      margin-bottom: 10px;
+    }
+    .quest button {
+      background-color: #8c6643; /* Dark brown button color */
+      color: #fff;
+      padding: 5px 10px;
+      margin-right: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .quest button:hover {
+      background-color: #63402b; /* Lighter brown on hover */
+    }
+    .related-individuals {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .related-individuals label {
+      flex: 1;
+      display: flex;
+      align-items: center;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Quest Log</h1>
+
+  <!-- Form for adding and editing quests -->
+  <form id="questForm">
+    <label for="questName">Quest Name:</label>
+    <input type="text" id="questName" required>
+
+    <label for="questDescription">Quest Description:</label>
+    <textarea id="questDescription" rows="3"></textarea>
+
+    <label for="questCompleted">Completed:</label>
+    <input type="checkbox" id="questCompleted">
+
+    <label for="questReward">Quest Reward:</label>
+    <input type="text" id="questReward">
+
+    <label>Related Individuals:</label>
+    <div class="related-individuals">
+      <label>
+        <input type="checkbox" id="urthorCheckbox" value="Urthor">
+        Urthor
+      </label>
+
+      <label>
+        <input type="checkbox" id="aelinCheckbox" value="Aelin">
+        Aelin
+      </label>
+
+      <label>
+        <input type="checkbox" id="leonardCheckbox" value="Leonard">
+        Leonard
+      </label>
+
+      <label>
+        <input type="checkbox" id="brolCheckbox" value="Bröl">
+        Bröl
+      </label>
+
+      <label>
+        <input type="checkbox" id="musashiCheckbox" value="Musashi">
+        Musashi
+      </label>
+
+      <label>
+        <input type="checkbox" id="levyCheckbox" value="Levy">
+        Levy
+      </label>
+
+      <label>
+        <input type="checkbox" id="everyoneCheckbox" value="Everyone">
+        Everyone
+      </label>
+    </div>
+
+    <button type="button" onclick="addOrUpdateQuest()">Add / Update Quest</button>
+    <input type="hidden" id="questIndex">
+  </form>
+
+  <!-- List to display quests -->
+  <ul id="questList"></ul>
+
+  <script>
+    // Array to store quests
+    let quests = [];
+
+    // Function to add or update a quest
+    function addOrUpdateQuest() {
+      const questNameInput = document.getElementById('questName');
+      const questDescriptionInput = document.getElementById('questDescription');
+      const questCompletedInput = document.getElementById('questCompleted');
+      const questRewardInput = document.getElementById('questReward');
+      const urthorCheckbox = document.getElementById('urthorCheckbox');
+      const aelinCheckbox = document.getElementById('aelinCheckbox');
+      const leonardCheckbox = document.getElementById('leonardCheckbox');
+      const brolCheckbox = document.getElementById('brolCheckbox');
+      const musashiCheckbox = document.getElementById('musashiCheckbox');
+      const levyCheckbox = document.getElementById('levyCheckbox');
+      const everyoneCheckbox = document.getElementById('everyoneCheckbox');
+      const questIndexInput = document.getElementById('questIndex');
+
+      const questName = questNameInput.value.trim();
+      const questDescription = questDescriptionInput.value.trim();
+      const questCompleted = questCompletedInput.checked;
+      const questReward = questRewardInput.value.trim();
+
+      // Get the selected related individuals
+      const relatedIndividuals = [];
+      if (urthorCheckbox.checked) relatedIndividuals.push(urthorCheckbox.value);
+      if (aelinCheckbox.checked) relatedIndividuals.push(aelinCheckbox.value);
+      if (leonardCheckbox.checked) relatedIndividuals.push(leonardCheckbox.value);
+      if (brolCheckbox.checked) relatedIndividuals.push(brolCheckbox.value);
+      if (musashiCheckbox.checked) relatedIndividuals.push(musashiCheckbox.value);
+      if (levyCheckbox.checked) relatedIndividuals.push(levyCheckbox.value);
+      if (everyoneCheckbox.checked) relatedIndividuals.push(everyoneCheckbox.value);
+
+      if (questName === '') {
+        alert('Please enter a quest name.');
+        return;
+      }
+
+      if (questIndexInput.value === '') {
+        // Add new quest
+        quests.push({
+          name: questName,
+          description: questDescription,
+          completed: questCompleted,
+          reward: questReward,
+          relatedIndividuals: relatedIndividuals
+        });
+      } else {
+        // Update existing quest
+        const index = parseInt(questIndexInput.value);
+        quests[index] = {
+          name: questName,
+          description: questDescription,
+          completed: questCompleted,
+          reward: questReward,
+          relatedIndividuals: relatedIndividuals
+        };
+        // Clear the hidden index input after updating
+        questIndexInput.value = '';
+      }
+
+      // Clear the input fields
+      questNameInput.value = '';
+      questDescriptionInput.value = '';
+      questCompletedInput.checked = false;
+      questRewardInput.value = '';
+      // Uncheck all checkboxes
+      urthorCheckbox.checked = false;
+      aelinCheckbox.checked = false;
+      leonardCheckbox.checked = false;
+      brolCheckbox.checked = false;
+      musashiCheckbox.checked = false;
+      levyCheckbox.checked = false;
+      everyoneCheckbox.checked = false;
+
+      // Refresh the quest list
+      displayQuests();
+    }
+
+    // Function to display quests in the list
+    function displayQuests() {
+      const questList = document.getElementById('questList');
+
+      // Clear the existing list
+      questList.innerHTML = '';
+
+      // Add each quest to the list
+      quests.forEach((quest, index) => {
+        const listItem = document.createElement('li');
+        listItem.className = 'quest';
+        listItem.innerHTML = `
+          <strong>${quest.name}</strong>
+          <p>${quest.description}</p>
+          <label>Completed: <input type="checkbox" disabled ${quest.completed ? 'checked' : ''}></label>
+          <p>Reward: ${quest.reward}</p>
+          <p>Related to: ${quest.relatedIndividuals.join(', ')}</p>
+          <button onclick="editQuest(${index})">Edit</button>
+          <button onclick="deleteQuest(${index})">Delete</button>
+        `;
+        questList.appendChild(listItem);
+      });
+    }
+
+    // Function to edit a quest
+    function editQuest(index) {
+      const questNameInput = document.getElementById('questName');
+      const questDescriptionInput = document.getElementById('questDescription');
+      const questCompletedInput = document.getElementById('questCompleted');
+      const questRewardInput = document.getElementById('questReward');
+      const urthorCheckbox = document.getElementById('urthorCheckbox');
+      const aelinCheckbox = document.getElementById('aelinCheckbox');
+      const leonardCheckbox = document.getElementById('leonardCheckbox');
+      const brolCheckbox = document.getElementById('brolCheckbox');
+      const musashiCheckbox = document.getElementById('musashiCheckbox');
+      const levyCheckbox = document.getElementById('levyCheckbox');
+      const everyoneCheckbox = document.getElementById('everyoneCheckbox');
+      const questIndexInput = document.getElementById('questIndex');
+
+      // Set the input values for editing
+      questNameInput.value = quests[index].name;
+      questDescriptionInput.value = quests[index].description;
+      questCompletedInput.checked = quests[index].completed;
+      questRewardInput.value = quests[index].reward;
+
+      // Set the checkboxes based on related individuals
+      urthorCheckbox.checked = quests[index].relatedIndividuals.includes(urthorCheckbox.value);
+      aelinCheckbox.checked = quests[index].relatedIndividuals.includes(aelinCheckbox.value);
+      leonardCheckbox.checked = quests[index].relatedIndividuals.includes(leonardCheckbox.value);
+      brolCheckbox.checked = quests[index].relatedIndividuals.includes(brolCheckbox.value);
+      musashiCheckbox.checked = quests[index].relatedIndividuals.includes(musashiCheckbox.value);
+      levyCheckbox.checked = quests[index].relatedIndividuals.includes(levyCheckbox.value);
+      everyoneCheckbox.checked = quests[index].relatedIndividuals.includes(everyoneCheckbox.value);
+
+      questIndexInput.value = index.toString();
+    }
+
+    // Function to delete a quest
+    function deleteQuest(index) {
+      // Remove the quest at the specified index
+      quests.splice(index, 1);
+      // Refresh the quest list
+      displayQuests();
+    }
+
+    // Initial display of quests
+    displayQuests();
+  </script>
+
+</body>
+</html>
